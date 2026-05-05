@@ -3,15 +3,128 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>REH DOGG GP | 3D Arcade Racing</title>
+  <title>REH DOGG GP | Reh Dogg Games Plus Arcade</title>
   <style>
-    body {
+    * {
       margin: 0;
-      overflow: hidden;
-      font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
     }
-    /* UI overlay */
-    .ui {
+
+    body {
+      background: radial-gradient(circle at top left, rgba(255,0,180,0.25), transparent 35%),
+                  radial-gradient(circle at bottom right, rgba(0,255,255,0.2), transparent 35%),
+                  linear-gradient(145deg, #050812 0%, #0b1020 55%, #02040a 100%);
+      font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow: hidden;
+      color: #f0f3f5;
+    }
+
+    /* scanline overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 2px, transparent 2px, transparent 6px);
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* START MENU */
+    .start-menu {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 8, 18, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 30;
+      transition: opacity 0.3s;
+    }
+
+    .menu-card {
+      background: linear-gradient(180deg, rgba(20,25,45,0.98), rgba(5,8,18,0.95));
+      border: 3px solid #ff2bd6;
+      border-radius: 2.5rem;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 0 0 4px #ffcc33, 0 0 35px rgba(255,43,214,0.45), inset 0 0 25px rgba(0,255,255,0.12);
+    }
+
+    .menu-card h1 {
+      font-size: 3rem;
+      background: linear-gradient(135deg, #ff2bd6, #ffcc33, #00f5ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 18px rgba(255,43,214,0.6);
+      margin-bottom: 0.5rem;
+    }
+
+    .menu-card .sub {
+      color: #00f5ff;
+      border-top: 2px solid #ffcc33;
+      display: inline-block;
+      padding-top: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-weight: bold;
+    }
+
+    .stage-selector {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8rem;
+      margin: 1.5rem 0;
+    }
+
+    .stage-btn {
+      background: #311c35;
+      border: 2px solid #ffcc44;
+      border-radius: 60px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      color: #ffdd99;
+      transition: 0.05s linear;
+    }
+    .stage-btn.selected {
+      background: #ff2bd6;
+      color: #050812;
+      border-color: #fff;
+      box-shadow: 0 0 12px #ff2bd6;
+    }
+
+    .start-btn {
+      background: linear-gradient(135deg, #ff2bd6, #ffcc33);
+      border: none;
+      padding: 0.8rem 2rem;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border-radius: 60px;
+      cursor: pointer;
+      margin-top: 1rem;
+      width: 80%;
+      color: #050812;
+      box-shadow: 0 6px 0 #5a1a3a;
+      transition: 0.05s linear;
+    }
+    .start-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #5a1a3a;
+    }
+
+    /* in‑game UI (arcade style) */
+    .game-ui {
       position: absolute;
       top: 20px;
       left: 0;
@@ -20,11 +133,9 @@
       justify-content: space-between;
       padding: 0 30px;
       pointer-events: none;
-      z-index: 10;
+      z-index: 15;
       font-weight: bold;
       text-shadow: 2px 2px 0 #000;
-      color: #ffcc33;
-      font-size: 1.2rem;
     }
     .ui-panel {
       background: rgba(0,0,0,0.65);
@@ -34,8 +145,20 @@
       border: 2px solid #ff2bd6;
       box-shadow: 0 0 12px rgba(255,43,214,0.5);
       pointer-events: auto;
+      font-family: monospace;
+      font-size: 1rem;
     }
-    .controls {
+    .ui-panel button {
+      background: linear-gradient(135deg, #ff2bd6, #ffcc33);
+      border: none;
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 15px;
+      font-family: inherit;
+    }
+    .controls-hint {
       position: absolute;
       bottom: 20px;
       left: 0;
@@ -46,381 +169,431 @@
       font-size: 0.8rem;
       color: #00f5ff;
       font-family: monospace;
-      letter-spacing: 1px;
-      z-index: 10;
+      z-index: 15;
       backdrop-filter: blur(4px);
     }
-    button {
-      background: linear-gradient(135deg, #ff2bd6, #ffcc33);
-      border: none;
-      padding: 6px 16px;
-      border-radius: 40px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-left: 15px;
-      pointer-events: auto;
-      font-family: inherit;
-    }
-    button:hover {
-      transform: scale(1.02);
-      box-shadow: 0 0 10px #ffcc33;
-    }
-    .stage-name {
-      color: #ff8bea;
-      font-size: 1rem;
-    }
-    @media (max-width: 700px) {
-      .ui { font-size: 0.8rem; padding: 0 15px; }
-      .ui-panel { padding: 4px 12px; }
-      button { padding: 4px 12px; font-size: 0.7rem; }
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div class="ui">
-    <div class="ui-panel">
-      🏁 STAGE: <span id="stageName" class="stage-name">Tokyo Neon</span> (<span id="stageNum">1</span>/5)
-    </div>
-    <div class="ui-panel">
-      🏆 LAP: <span id="currentLap">0</span> / <span id="totalLaps">3</span>
-      &nbsp;&nbsp;|&nbsp;&nbsp; 🕒 BEST: <span id="bestLap">--:--</span>
-      <button id="resetBtn">⟳ RESTART</button>
-    </div>
-  </div>
-  <div class="controls">
-    🎮 ARROWS or WASD → ↑ accelerate &nbsp;&nbsp; ↓ brake/reverse &nbsp;&nbsp; ← → steer
-  </div>
 
-  <!-- Import Three.js from CDN -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
-      }
+<!-- START MENU (arcade) -->
+<div id="startMenu" class="start-menu">
+  <div class="menu-card">
+    <h1>⚡ REH DOGG GP ⚡</h1>
+    <div class="sub">Reh Dogg Games Plus Arcade</div>
+    <div class="stage-selector">
+      <div class="stage-btn" data-stage="0">🌆 Tokyo Neon</div>
+      <div class="stage-btn" data-stage="1">🏜️ Sahara Desert</div>
+      <div class="stage-btn" data-stage="2">🏔️ Alpine Snow</div>
+      <div class="stage-btn" data-stage="3">🌲 Forest Ridge</div>
+      <div class="stage-btn" data-stage="4">🌋 Volcano Circuit</div>
+    </div>
+    <button id="startRaceBtn" class="start-btn">🏁 START RACE 🏁</button>
+    <div class="controls-hint" style="position:relative; margin-top:1.5rem; background:transparent;">🎮 ARROWS / WASD : steer & pedal</div>
+  </div>
+</div>
+
+<!-- in‑game UI (hidden until race starts) -->
+<div id="gameUI" class="game-ui hidden">
+  <div class="ui-panel">🌍 STAGE: <span id="stageName">Tokyo Neon</span> (<span id="stageNum">1</span>/5)</div>
+  <div class="ui-panel">🏁 LAP: <span id="currentLap">0</span>/3 &nbsp;| 🏆 BEST: <span id="bestLap">--:--</span>
+    <button id="menuBtn">MENU</button>
+    <button id="resetRaceBtn">⟳ RESTART</button>
+  </div>
+</div>
+<div id="controlsHint" class="controls-hint hidden">🎮 ARROWS / WASD : ↑ accelerate &nbsp;&nbsp; ↓ brake/reverse &nbsp;&nbsp; ← → steer</div>
+
+<!-- Three.js canvas will be injected here -->
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
     }
-  </script>
+  }
+</script>
 
-  <script type="module">
-    import * as THREE from 'three';
+<script type="module">
+  import * as THREE from 'three';
 
-    // --- GAME SETUP ---
-    const canvas = document.createElement('canvas');
-    document.body.appendChild(canvas);
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true; // shadows add depth
+  // --------------------------------------------------------------
+  // SETUP THREE.JS
+  // --------------------------------------------------------------
+  const canvas = document.createElement('canvas');
+  document.body.appendChild(canvas);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a2a);
-    scene.fog = new THREE.FogExp2(0x0a0a2a, 0.008);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0a2a);
+  scene.fog = new THREE.FogExp2(0x0a0a2a, 0.008);
 
-    // Camera (chase view)
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 3.5, 8);
-    camera.lookAt(0, 0, 0);
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 3.5, 8);
+  camera.lookAt(0, 0, 0);
 
-    // --- LIGHTING ---
-    const ambientLight = new THREE.AmbientLight(0x223344);
-    scene.add(ambientLight);
-    const mainLight = new THREE.DirectionalLight(0xffaa88, 1);
-    mainLight.position.set(5, 12, 8);
-    mainLight.castShadow = true;
-    mainLight.receiveShadow = false;
-    scene.add(mainLight);
-    const fillLight = new THREE.PointLight(0x44aaff, 0.5);
-    fillLight.position.set(0, 4, 2);
-    scene.add(fillLight);
-    const backLight = new THREE.PointLight(0xffaa33, 0.4);
-    backLight.position.set(0, 2, -5);
-    scene.add(backLight);
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0x223344);
+  scene.add(ambientLight);
+  const mainLight = new THREE.DirectionalLight(0xffaa88, 1);
+  mainLight.position.set(5, 12, 8);
+  mainLight.castShadow = true;
+  mainLight.shadow.mapSize.width = 1024;
+  mainLight.shadow.mapSize.height = 1024;
+  scene.add(mainLight);
+  const fillLight = new THREE.PointLight(0x44aaff, 0.5);
+  fillLight.position.set(0, 4, 2);
+  scene.add(fillLight);
+  const backLight = new THREE.PointLight(0xffaa33, 0.4);
+  backLight.position.set(0, 2, -5);
+  scene.add(backLight);
 
-    // --- TRACK PARAMETERS (simple oval) ---
-    const trackMinX = -6.8;
-    const trackMaxX = 6.8;
-    const trackLengthFront = 38;   // Z from -38 to +38 (approx)
-    const trackLengthBack = -38;
-    const finishLineZ = 36;
-    const startLineZ = -36;
+  // --------------------------------------------------------------
+  // IMPROVED CAR MODEL (sleek, not Lego)
+  // --------------------------------------------------------------
+  const carGroup = new THREE.Group();
+  // Body (low, wide, smooth)
+  const bodyGeo = new THREE.BoxGeometry(1.6, 0.35, 2.4);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff3366, metalness: 0.85, roughness: 0.25 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = 0.1;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  carGroup.add(body);
+  // Roof / cockpit (rounded look using cylinder)
+  const roofGeo = new THREE.CylinderGeometry(0.7, 0.75, 1.1, 12);
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x44aaff, metalness: 0.3 });
+  const roof = new THREE.Mesh(roofGeo, roofMat);
+  roof.position.set(0, 0.45, -0.2);
+  roof.castShadow = true;
+  carGroup.add(roof);
+  // Front spoiler (small)
+  const spoilerGeo = new THREE.BoxGeometry(1.3, 0.15, 0.2);
+  const spoilerMat = new THREE.MeshStandardMaterial({ color: 0xccccdd });
+  const frontSpoiler = new THREE.Mesh(spoilerGeo, spoilerMat);
+  frontSpoiler.position.set(0, 0.1, 1.25);
+  frontSpoiler.castShadow = true;
+  carGroup.add(frontSpoiler);
+  // Rear wing
+  const wingMat = new THREE.MeshStandardMaterial({ color: 0xccccdd });
+  const wingLeft = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.1, 0.6), wingMat);
+  wingLeft.position.set(-0.7, 0.55, -1.1);
+  carGroup.add(wingLeft);
+  const wingRight = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.1, 0.6), wingMat);
+  wingRight.position.set(0.7, 0.55, -1.1);
+  carGroup.add(wingRight);
+  const wingCenter = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.1, 0.3), wingMat);
+  wingCenter.position.set(0, 0.6, -1.1);
+  carGroup.add(wingCenter);
+  // Wheels (with rims)
+  const wheelMatBlack = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.2 });
+  const rimMat = new THREE.MeshStandardMaterial({ color: 0xccccaa, metalness: 0.7 });
+  const wheelPositions = [[-0.9, 0.1, 0.85], [0.9, 0.1, 0.85], [-0.9, 0.1, -0.85], [0.9, 0.1, -0.85]];
+  wheelPositions.forEach(pos => {
+    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.5, 24), wheelMatBlack);
+    wheel.rotation.z = Math.PI / 2;
+    wheel.position.set(pos[0], pos[1], pos[2]);
+    wheel.castShadow = true;
+    carGroup.add(wheel);
+    // rim
+    const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.51, 8), rimMat);
+    rim.rotation.z = Math.PI / 2;
+    rim.position.set(pos[0], pos[1], pos[2]);
+    rim.castShadow = true;
+    carGroup.add(rim);
+  });
+  // windows (tinted)
+  const windowMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, emissive: 0x112233, transparent: true, opacity: 0.7 });
+  const frontWind = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.2, 0.6), windowMat);
+  frontWind.position.set(0, 0.55, 0.3);
+  carGroup.add(frontWind);
+  const sideWindL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.25, 0.9), windowMat);
+  sideWindL.position.set(-0.85, 0.5, -0.2);
+  carGroup.add(sideWindL);
+  const sideWindR = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.25, 0.9), windowMat);
+  sideWindR.position.set(0.85, 0.5, -0.2);
+  carGroup.add(sideWindR);
+  
+  scene.add(carGroup);
+  let carPosition = new THREE.Vector3(0, 0.15, -35);
+  let carAngle = 0;
+  let carSpeed = 0;
+  let steering = 0;
+  carGroup.position.copy(carPosition);
 
-    // --- CAR OBJECT ---
-    const carGroup = new THREE.Group();
-    // Body
-    const bodyGeo = new THREE.BoxGeometry(1.2, 0.4, 2.2);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff3366, metalness: 0.7, roughness: 0.3 });
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
-    body.position.y = 0.1;
-    body.castShadow = true;
-    body.receiveShadow = true;
-    carGroup.add(body);
-    // Roof
-    const roofGeo = new THREE.BoxGeometry(0.8, 0.45, 1.1);
-    const roofMat = new THREE.MeshStandardMaterial({ color: 0x44aaff });
-    const roof = new THREE.Mesh(roofGeo, roofMat);
-    roof.position.set(0, 0.45, -0.2);
-    roof.castShadow = true;
-    carGroup.add(roof);
-    // Wheels
-    const wheelMatBlack = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.2 });
-    const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.45, 16);
-    const positions = [[-0.8, 0, 0.75], [0.8, 0, 0.75], [-0.8, 0, -0.75], [0.8, 0, -0.75]];
-    positions.forEach(pos => {
-      const wheel = new THREE.Mesh(wheelGeo, wheelMatBlack);
-      wheel.rotation.z = Math.PI / 2;
-      wheel.position.set(pos[0], pos[1], pos[2]);
-      wheel.castShadow = true;
-      carGroup.add(wheel);
+  // --------------------------------------------------------------
+  // TRACK BUILDING (same as before but with separate elements)
+  // --------------------------------------------------------------
+  let trackObjects = []; // not used for removal now, but we rebuild on stage change
+
+  function buildTrack(groundColor, trackColor) {
+    // Ground plane
+    const groundMat = new THREE.MeshStandardMaterial({ color: groundColor, roughness: 0.8, metalness: 0.1 });
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(45, 130), groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+    // Barriers
+    const barrierMat = new THREE.MeshStandardMaterial({ color: trackColor, metalness: 0.3 });
+    const leftBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 130), barrierMat);
+    leftBarrier.position.set(-7.2, 0.1, 0);
+    leftBarrier.castShadow = true;
+    scene.add(leftBarrier);
+    const rightBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 130), barrierMat);
+    rightBarrier.position.set(7.2, 0.1, 0);
+    rightBarrier.castShadow = true;
+    scene.add(rightBarrier);
+    // Lane markings
+    const lineMat = new THREE.MeshStandardMaterial({ color: 0xffcc33 });
+    for (let z = -55; z <= 55; z += 4.5) {
+      const line = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 1.8), lineMat);
+      line.position.set(0, 0.05, z);
+      scene.add(line);
+    }
+    // Finish line
+    const finishMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x442200 });
+    const finishLine = new THREE.Mesh(new THREE.BoxGeometry(14, 0.2, 0.6), finishMat);
+    finishLine.position.set(0, 0.05, 36);
+    scene.add(finishLine);
+    const startLine = new THREE.Mesh(new THREE.BoxGeometry(14, 0.2, 0.6), finishMat);
+    startLine.position.set(0, 0.05, -36);
+    scene.add(startLine);
+  }
+
+  // remove previous track (keep car and lights)
+  function clearTrack() {
+    const toRemove = [];
+    scene.children.forEach(child => {
+      if (child.isMesh && (child.geometry.type === 'PlaneGeometry' ||
+          (child.geometry.type === 'BoxGeometry' && (child.position.x === -7.2 || child.position.x === 7.2 || child.position.y === 0.05)))) {
+        toRemove.push(child);
+      }
     });
-    // Window tint
-    const windowMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, emissive: 0x112233 });
-    const windowGeo = new THREE.BoxGeometry(0.65, 0.25, 0.9);
-    const windowMesh = new THREE.Mesh(windowGeo, windowMat);
-    windowMesh.position.set(0, 0.35, -0.15);
-    carGroup.add(windowMesh);
-    
-    scene.add(carGroup);
-    let carPosition = new THREE.Vector3(0, 0.15, -35);
-    let carAngle = 0;
-    let carSpeed = 0;
-    let steering = 0;
+    toRemove.forEach(obj => scene.remove(obj));
+  }
+
+  // --------------------------------------------------------------
+  // STAGES
+  // --------------------------------------------------------------
+  const stages = [
+    { name: "Tokyo Neon", groundColor: 0x111122, trackColor: 0xaa44ff, ambientColor: 0x223344, lightColor: 0xff66cc, bgColor: 0x0a0a2a },
+    { name: "Sahara Desert", groundColor: 0xbb9955, trackColor: 0xccaa66, ambientColor: 0xccaa77, lightColor: 0xffaa66, bgColor: 0xddbb77 },
+    { name: "Alpine Snow", groundColor: 0xeeeeff, trackColor: 0xaaddff, ambientColor: 0xaaccff, lightColor: 0xffffff, bgColor: 0xaaccff },
+    { name: "Forest Ridge", groundColor: 0x2a5a2a, trackColor: 0x4a7a4a, ambientColor: 0x3a6a3a, lightColor: 0xaaffaa, bgColor: 0x2a4a2a },
+    { name: "Volcano Circuit", groundColor: 0x442200, trackColor: 0xaa3300, ambientColor: 0x552200, lightColor: 0xff6644, bgColor: 0x331100 }
+  ];
+  let currentStage = 0;
+  let currentLap = 0;
+  let totalLaps = 3;
+  let lapStarted = false;
+  let raceActive = true;
+  let bestLapTime = Infinity;
+  let lapStartTime = 0;
+  let raceSessionActive = false; // whether race is ongoing (UI visible)
+
+  function applyStage(stageIdx) {
+    clearTrack();
+    const st = stages[stageIdx];
+    scene.background = new THREE.Color(st.bgColor);
+    ambientLight.color.setHex(st.ambientColor);
+    mainLight.color.setHex(st.lightColor);
+    fillLight.color.setHex(st.lightColor);
+    buildTrack(st.groundColor, st.trackColor);
+    document.getElementById('stageName').innerText = st.name;
+    document.getElementById('stageNum').innerText = stageIdx+1;
+  }
+
+  function resetRace(keepStage = false) {
+    if (!keepStage) {
+      // use currentStage already selected
+    }
+    carSpeed = 0;
+    steering = 0;
+    carAngle = 0;
+    carPosition.set(0, 0.15, -35);
     carGroup.position.copy(carPosition);
-    
-    // --- TRACK ELEMENTS (ground, barriers, lane lines) ---
-    function buildTrack(groundColor, trackColor) {
-      // Ground plane
-      const groundMat = new THREE.MeshStandardMaterial({ color: groundColor, roughness: 0.8, metalness: 0.1 });
-      const ground = new THREE.Mesh(new THREE.PlaneGeometry(45, 130), groundMat);
-      ground.rotation.x = -Math.PI / 2;
-      ground.position.y = -0.2;
-      ground.receiveShadow = true;
-      scene.add(ground);
-      
-      // Left and right barriers
-      const barrierMat = new THREE.MeshStandardMaterial({ color: trackColor, metalness: 0.3 });
-      const leftBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 130), barrierMat);
-      leftBarrier.position.set(-7.2, 0.1, 0);
-      leftBarrier.castShadow = true;
-      scene.add(leftBarrier);
-      const rightBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 130), barrierMat);
-      rightBarrier.position.set(7.2, 0.1, 0);
-      rightBarrier.castShadow = true;
-      scene.add(rightBarrier);
-      
-      // Lane markings (dashed)
-      const lineMat = new THREE.MeshStandardMaterial({ color: 0xffcc33 });
-      for (let z = -55; z <= 55; z += 4.5) {
-        const line = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 1.8), lineMat);
-        line.position.set(0, 0.05, z);
-        line.castShadow = false;
-        scene.add(line);
-      }
-      
-      // Finish line marker
-      const finishMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x442200 });
-      const finishLine = new THREE.Mesh(new THREE.BoxGeometry(14, 0.2, 0.6), finishMat);
-      finishLine.position.set(0, 0.05, finishLineZ);
-      scene.add(finishLine);
-      
-      const startLine = new THREE.Mesh(new THREE.BoxGeometry(14, 0.2, 0.6), finishMat);
-      startLine.position.set(0, 0.05, startLineZ);
-      scene.add(startLine);
+    carGroup.rotation.y = 0;
+    currentLap = 0;
+    lapStarted = false;
+    raceActive = true;
+    document.getElementById('currentLap').innerText = "0";
+    lapStartTime = performance.now() / 1000;
+  }
+
+  // --------------------------------------------------------------
+  // GAME LOOP & CONTROLS
+  // --------------------------------------------------------------
+  const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, s: false, a: false, d: false };
+  window.addEventListener('keydown', (e) => {
+    if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','s','a','d'].includes(e.key)) e.preventDefault();
+  });
+  window.addEventListener('keyup', (e) => {
+    if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+  });
+
+  const maxSpeed = 34;
+  const acceleration = 1.7;
+  const brakeDecel = 2.2;
+  const turnSpeed = 2.0;
+  const drag = 0.98;
+
+  function updateGame(deltaTime) {
+    if (!raceSessionActive || !raceActive) return;
+
+    let accelerate = keys.ArrowUp || keys.w;
+    let brake = keys.ArrowDown || keys.s;
+    let left = keys.ArrowLeft || keys.a;
+    let right = keys.ArrowRight || keys.d;
+
+    if (accelerate) carSpeed = Math.min(maxSpeed, carSpeed + acceleration * deltaTime);
+    else if (brake) carSpeed = Math.max(-maxSpeed/2.5, carSpeed - brakeDecel * deltaTime);
+    else carSpeed *= drag;
+
+    if (left) steering = Math.max(-1, steering - turnSpeed * deltaTime);
+    else if (right) steering = Math.min(1, steering + turnSpeed * deltaTime);
+    else steering *= 0.96;
+
+    carAngle += steering * carSpeed * deltaTime * 0.9;
+    carAngle = Math.min(Math.max(carAngle, -1.3), 1.3);
+    carGroup.rotation.y = carAngle * 0.9;
+
+    carPosition.z += Math.cos(carAngle) * carSpeed * deltaTime;
+    carPosition.x += Math.sin(carAngle) * carSpeed * deltaTime;
+
+    // boundaries
+    const trackMinX = -6.8, trackMaxX = 6.8;
+    carPosition.x = Math.min(trackMaxX - 0.6, Math.max(trackMinX + 0.6, carPosition.x));
+    if (carPosition.z > 38) carPosition.z = 38;
+    if (carPosition.z < -38) carPosition.z = -38;
+    carGroup.position.copy(carPosition);
+
+    // lap detection
+    if (!lapStarted && carPosition.z > 35 && carPosition.z < 37 && carSpeed > 1.5) {
+      lapStarted = true;
+      if (currentLap === 0) lapStartTime = performance.now() / 1000;
     }
-    
-    // --- STAGES DEFINITIONS ---
-    const stages = [
-      { name: "Tokyo Neon", groundColor: 0x111122, trackColor: 0xaa44ff, ambientColor: 0x223344, lightColor: 0xff66cc, bgColor: 0x0a0a2a },
-      { name: "Sahara Desert", groundColor: 0xbb9955, trackColor: 0xccaa66, ambientColor: 0xccaa77, lightColor: 0xffaa66, bgColor: 0xddbb77 },
-      { name: "Alpine Snow", groundColor: 0xeeeeff, trackColor: 0xaaddff, ambientColor: 0xaaccff, lightColor: 0xffffff, bgColor: 0xaaccff },
-      { name: "Forest Ridge", groundColor: 0x2a5a2a, trackColor: 0x4a7a4a, ambientColor: 0x3a6a3a, lightColor: 0xaaffaa, bgColor: 0x2a4a2a },
-      { name: "Volcano Circuit", groundColor: 0x442200, trackColor: 0xaa3300, ambientColor: 0x552200, lightColor: 0xff6644, bgColor: 0x331100 }
-    ];
-    
-    let currentStage = 0;
-    let currentLap = 0;
-    let totalLaps = 3;   // you can change to 5 if you like
-    let lapStarted = false;
-    let raceActive = true;
-    
-    // Helper to rebuild track for new stage
-    let trackObjects = []; // to remove old track elements if needed; for simplicity we clear scene's track meshes
-    function rebuildStage() {
-      // Remove previous track elements (keep camera, lights, car, but remove ground and barriers and lines)
-      const toRemove = [];
-      scene.children.forEach(child => {
-        if (child.isMesh && (child.geometry.type === 'PlaneGeometry' || 
-            (child.geometry.type === 'BoxGeometry' && (child.position.x === -7.2 || child.position.x === 7.2 || child.position.y === 0.05)))) {
-          toRemove.push(child);
-        }
-      });
-      toRemove.forEach(obj => scene.remove(obj));
-      
-      const stage = stages[currentStage];
-      scene.background = new THREE.Color(stage.bgColor);
-      ambientLight.color.setHex(stage.ambientColor);
-      mainLight.color.setHex(stage.lightColor);
-      fillLight.color.setHex(stage.lightColor);
-      
-      buildTrack(stage.groundColor, stage.trackColor);
-    }
-    
-    // --- GAME LOGIC ---
-    const maxSpeed = 32;
-    const acceleration = 1.6;
-    const brakeDecel = 2.2;
-    const turnSpeed = 2.0;
-    const drag = 0.98;
-    
-    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, s: false, a: false, d: false };
-    
-    window.addEventListener('keydown', (e) => {
-      if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
-      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','s','a','d'].includes(e.key)) e.preventDefault();
-    });
-    window.addEventListener('keyup', (e) => {
-      if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
-    });
-    
-    let lastTimestamp = 0;
-    let bestLapTime = Infinity;
-    let lapStartTime = 0;
-    
-    function updateGame(deltaTime) {
-      if (!raceActive) return;
-      
-      let accelerate = keys.ArrowUp || keys.w;
-      let brake = keys.ArrowDown || keys.s;
-      let left = keys.ArrowLeft || keys.a;
-      let right = keys.ArrowRight || keys.d;
-      
-      if (accelerate) carSpeed = Math.min(maxSpeed, carSpeed + acceleration * deltaTime);
-      else if (brake) carSpeed = Math.max(-maxSpeed/2.5, carSpeed - brakeDecel * deltaTime);
-      else carSpeed *= drag;
-      
-      if (left) steering = Math.max(-1, steering - turnSpeed * deltaTime);
-      else if (right) steering = Math.min(1, steering + turnSpeed * deltaTime);
-      else steering *= 0.96;
-      
-      carAngle += steering * carSpeed * deltaTime * 0.9;
-      carAngle = Math.min(Math.max(carAngle, -1.3), 1.3);
-      carGroup.rotation.y = carAngle * 0.9;
-      
-      // move car
-      carPosition.z += Math.cos(carAngle) * carSpeed * deltaTime;
-      carPosition.x += Math.sin(carAngle) * carSpeed * deltaTime;
-      
-      // boundaries
-      carPosition.x = Math.min(trackMaxX - 0.6, Math.max(trackMinX + 0.6, carPosition.x));
-      if (carPosition.z > trackLengthFront) carPosition.z = trackLengthFront;
-      if (carPosition.z < trackLengthBack) carPosition.z = trackLengthBack;
-      
-      carGroup.position.copy(carPosition);
-      
-      // Lap detection (crossing finish line forward)
-      if (!lapStarted && carPosition.z > finishLineZ - 1.5 && carPosition.z < finishLineZ + 1.5 && carSpeed > 1.5) {
-        lapStarted = true;
-        if (currentLap === 0) lapStartTime = performance.now() / 1000;
-      }
-      if (lapStarted && carPosition.z < finishLineZ - 2.5) {
-        // Completed a lap
-        currentLap++;
-        lapStarted = false;
-        document.getElementById('currentLap').innerText = currentLap;
-        
-        const lapTimeSec = (performance.now() / 1000) - lapStartTime;
-        if (currentLap === 1) lapStartTime = performance.now() / 1000;
-        if (currentLap <= totalLaps && lapTimeSec < bestLapTime && currentLap > 0) {
-          bestLapTime = lapTimeSec;
-          const seconds = bestLapTime.toFixed(2);
-          document.getElementById('bestLap').innerText = `${seconds}s`;
-        }
-        
-        if (currentLap >= totalLaps) {
-          // Stage complete!
-          raceActive = false;
-          currentStage++;
-          if (currentStage >= stages.length) {
-            currentStage = 0;
-            alert("🏆🏆🏆 GRAND CHAMPION! You completed all 5 stages! Starting over from stage 1. 🏆🏆🏆");
-          } else {
-            alert(`⭐ Stage complete! Advancing to ${stages[currentStage].name} ⭐`);
-          }
-          // reset race for next stage
-          resetRace(true);
-        }
-      }
-      
-      // Update UI
-      document.getElementById('stageName').innerText = stages[currentStage].name;
-      document.getElementById('stageNum').innerText = currentStage + 1;
-      
-      // Camera follow (smooth)
-      const targetX = carPosition.x * 0.45;
-      const targetZ = carPosition.z - 5;
-      camera.position.x += (targetX - camera.position.x) * 0.08;
-      camera.position.z += (targetZ - camera.position.z) * 0.08;
-      camera.position.y = 2.8;
-      camera.lookAt(carPosition.x, 0.1, carPosition.z);
-    }
-    
-    function resetRace(nextStage = false) {
-      if (nextStage) {
-        rebuildStage();      // change environment
-      }
-      carSpeed = 0;
-      steering = 0;
-      carAngle = 0;
-      carPosition.set(0, 0.15, -35);
-      carGroup.position.copy(carPosition);
-      carGroup.rotation.y = 0;
-      currentLap = 0;
+    if (lapStarted && carPosition.z < 34) {
+      currentLap++;
       lapStarted = false;
-      raceActive = true;
-      document.getElementById('currentLap').innerText = "0";
-      if (!nextStage) {
-        // manual restart keeps same stage
+      document.getElementById('currentLap').innerText = currentLap;
+      const lapTimeSec = (performance.now() / 1000) - lapStartTime;
+      if (currentLap <= totalLaps && lapTimeSec < bestLapTime && currentLap > 0) {
+        bestLapTime = lapTimeSec;
+        document.getElementById('bestLap').innerText = bestLapTime.toFixed(2) + 's';
       }
+      if (currentLap >= totalLaps) {
+        raceActive = false;
+        // advance to next stage
+        currentStage++;
+        if (currentStage >= stages.length) {
+          currentStage = 0;
+          alert("🏆🏆🏆 GRAND CHAMPION! You completed all 5 stages! Starting over from stage 1. 🏆🏆🏆");
+        } else {
+          alert(`⭐ Stage complete! Advancing to ${stages[currentStage].name} ⭐`);
+        }
+        applyStage(currentStage);
+        resetRace(true);
+        raceActive = true;
+      }
+      lapStartTime = performance.now() / 1000;
     }
-    
-    // --- INITIAL BUILD ---
-    buildTrack(stages[0].groundColor, stages[0].trackColor);
-    
-    // Add some simple trees/pylons for decoration (optional)
-    const pylonMat = new THREE.MeshStandardMaterial({ color: 0xaa44ff });
-    for (let i = -35; i <= 35; i += 12) {
-      const leftPylon = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1.2, 6), pylonMat);
-      leftPylon.position.set(-7.8, 0.3, i);
-      leftPylon.castShadow = true;
-      scene.add(leftPylon);
-      const rightPylon = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1.2, 6), pylonMat);
-      rightPylon.position.set(7.8, 0.3, i);
-      rightPylon.castShadow = true;
-      scene.add(rightPylon);
-    }
-    
-    // --- ANIMATION LOOP ---
-    let lastTime = performance.now();
-    function animate() {
-      const now = performance.now();
-      let dt = Math.min(0.033, (now - lastTime) / 1000);
-      lastTime = now;
-      updateGame(dt);
-      renderer.render(scene, camera);
-      requestAnimationFrame(animate);
-    }
-    
-    animate();
-    
-    // --- RESET BUTTON (manual restart same stage) ---
-    document.getElementById('resetBtn').addEventListener('click', () => {
-      resetRace(false);
+
+    // camera follow
+    const targetX = carPosition.x * 0.45;
+    const targetZ = carPosition.z - 5;
+    camera.position.x += (targetX - camera.position.x) * 0.08;
+    camera.position.z += (targetZ - camera.position.z) * 0.08;
+    camera.position.y = 2.8;
+    camera.lookAt(carPosition.x, 0.1, carPosition.z);
+  }
+
+  // Animation loop
+  let lastTime = performance.now();
+  function animate() {
+    const now = performance.now();
+    let dt = Math.min(0.033, (now - lastTime) / 1000);
+    lastTime = now;
+    updateGame(dt);
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // --------------------------------------------------------------
+  // UI CONTROLLER (Start Menu, Game UI)
+  // --------------------------------------------------------------
+  const startMenuDiv = document.getElementById('startMenu');
+  const gameUIDiv = document.getElementById('gameUI');
+  const controlsHintDiv = document.getElementById('controlsHint');
+  let selectedStage = 0;
+
+  // Stage selector highlight
+  document.querySelectorAll('.stage-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedStage = parseInt(btn.dataset.stage);
     });
-    
-    // --- WINDOW RESIZE ---
-    window.addEventListener('resize', onWindowResize, false);
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+  document.querySelector('.stage-btn').classList.add('selected'); // default
+
+  function startRace() {
+    currentStage = selectedStage;
+    applyStage(currentStage);
+    resetRace(true);
+    raceSessionActive = true;
+    raceActive = true;
+    bestLapTime = Infinity;
+    document.getElementById('bestLap').innerText = '--:--';
+    document.getElementById('currentLap').innerText = '0';
+    startMenuDiv.classList.add('hidden');
+    gameUIDiv.classList.remove('hidden');
+    controlsHintDiv.classList.remove('hidden');
+    // reset times
+    lapStartTime = performance.now() / 1000;
+  }
+
+  function returnToMenu() {
+    raceSessionActive = false;
+    startMenuDiv.classList.remove('hidden');
+    gameUIDiv.classList.add('hidden');
+    controlsHintDiv.classList.add('hidden');
+    // reset car position visually
+    carPosition.set(0, 0.15, -35);
+    carGroup.position.copy(carPosition);
+    carSpeed = 0;
+    steering = 0;
+    // re-apply stage 0 background for menu
+    applyStage(selectedStage);
+  }
+
+  document.getElementById('startRaceBtn').addEventListener('click', startRace);
+  document.getElementById('menuBtn').addEventListener('click', returnToMenu);
+  document.getElementById('resetRaceBtn').addEventListener('click', () => {
+    if (raceSessionActive) {
+      resetRace(true);
+      raceActive = true;
+      bestLapTime = Infinity;
+      document.getElementById('bestLap').innerText = '--:--';
+      document.getElementById('currentLap').innerText = '0';
+      lapStartTime = performance.now() / 1000;
     }
-  </script>
+  });
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // initial build of track for stage 0 (will be overwritten on start)
+  buildTrack(stages[0].groundColor, stages[0].trackColor);
+</script>
 </body>
 </html>
