@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>REH DOGG GP | Reh Dogg Games Plus Arcade</title>
   <style>
     * {
@@ -10,6 +10,7 @@
       padding: 0;
       box-sizing: border-box;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -20,6 +21,7 @@
       min-height: 100vh;
       overflow: hidden;
       color: #f0f3f5;
+      touch-action: none; /* prevent scrolling while touching canvas */
     }
 
     /* scanline overlay */
@@ -46,7 +48,6 @@
       justify-content: center;
       align-items: center;
       z-index: 30;
-      transition: opacity 0.3s;
     }
 
     .menu-card {
@@ -66,7 +67,6 @@
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      text-shadow: 0 0 18px rgba(255,43,214,0.6);
       margin-bottom: 0.5rem;
     }
 
@@ -123,30 +123,31 @@
       box-shadow: 0 2px 0 #5a1a3a;
     }
 
-    /* in‑game UI (arcade style) */
+    /* in‑game UI */
     .game-ui {
       position: absolute;
-      top: 20px;
+      top: 15px;
       left: 0;
       width: 100%;
       display: flex;
       justify-content: space-between;
-      padding: 0 30px;
+      padding: 0 15px;
       pointer-events: none;
       z-index: 15;
       font-weight: bold;
       text-shadow: 2px 2px 0 #000;
+      flex-wrap: wrap;
+      gap: 10px;
     }
     .ui-panel {
-      background: rgba(0,0,0,0.65);
+      background: rgba(0,0,0,0.7);
       backdrop-filter: blur(4px);
-      padding: 8px 18px;
+      padding: 6px 15px;
       border-radius: 40px;
       border: 2px solid #ff2bd6;
       box-shadow: 0 0 12px rgba(255,43,214,0.5);
       pointer-events: auto;
-      font-family: monospace;
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
     .ui-panel button {
       background: linear-gradient(135deg, #ff2bd6, #ffcc33);
@@ -155,31 +156,77 @@
       border-radius: 40px;
       font-weight: bold;
       cursor: pointer;
-      margin-left: 15px;
-      font-family: inherit;
+      margin-left: 12px;
     }
-    .controls-hint {
+
+    /* mobile touch controls */
+    .touch-controls {
       position: absolute;
       bottom: 20px;
       left: 0;
       right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+      gap: 15px;
+      z-index: 25;
+      pointer-events: none;
+    }
+    .control-group {
+      display: flex;
+      gap: 15px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      border-radius: 80px;
+      padding: 10px 20px;
+      border: 1px solid #ff2bd6;
+      pointer-events: auto;
+    }
+    .ctrl-btn {
+      background: linear-gradient(135deg, #ff2bd6, #ffcc33);
+      border: none;
+      width: 70px;
+      padding: 12px 0;
+      border-radius: 60px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #050812;
+      cursor: pointer;
       text-align: center;
-      background: rgba(0,0,0,0.6);
-      padding: 8px;
-      font-size: 0.8rem;
+      box-shadow: 0 4px 0 #5a1a3a;
+      transition: 0.05s linear;
+      touch-action: manipulation;
+    }
+    .ctrl-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #5a1a3a;
+    }
+    .controls-hint {
+      position: absolute;
+      bottom: 110px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      background: rgba(0,0,0,0.5);
+      padding: 5px;
+      font-size: 0.7rem;
       color: #00f5ff;
-      font-family: monospace;
       z-index: 15;
-      backdrop-filter: blur(4px);
     }
     .hidden {
-      display: none;
+      display: none !important;
+    }
+    @media (max-width: 700px) {
+      .ctrl-btn { width: 55px; font-size: 1rem; padding: 10px 0; }
+      .control-group { padding: 8px 12px; gap: 10px; }
+      .ui-panel { font-size: 0.7rem; padding: 4px 10px; }
+      .ui-panel button { padding: 2px 8px; font-size: 0.7rem; }
     }
   </style>
 </head>
 <body>
 
-<!-- START MENU (arcade) -->
+<!-- START MENU -->
 <div id="startMenu" class="start-menu">
   <div class="menu-card">
     <h1>⚡ REH DOGG GP ⚡</h1>
@@ -192,11 +239,11 @@
       <div class="stage-btn" data-stage="4">🌋 Volcano Circuit</div>
     </div>
     <button id="startRaceBtn" class="start-btn">🏁 START RACE 🏁</button>
-    <div class="controls-hint" style="position:relative; margin-top:1.5rem; background:transparent;">🎮 ARROWS / WASD : steer & pedal</div>
+    <div class="controls-hint" style="position:relative; margin-top:1.5rem; background:transparent;">🎮 Touch & Keyboard: accelerate, steer, brake</div>
   </div>
 </div>
 
-<!-- in‑game UI (hidden until race starts) -->
+<!-- GAME UI -->
 <div id="gameUI" class="game-ui hidden">
   <div class="ui-panel">🌍 STAGE: <span id="stageName">Tokyo Neon</span> (<span id="stageNum">1</span>/5)</div>
   <div class="ui-panel">🏁 LAP: <span id="currentLap">0</span>/3 &nbsp;| 🏆 BEST: <span id="bestLap">--:--</span>
@@ -204,9 +251,20 @@
     <button id="resetRaceBtn">⟳ RESTART</button>
   </div>
 </div>
-<div id="controlsHint" class="controls-hint hidden">🎮 ARROWS / WASD : ↑ accelerate &nbsp;&nbsp; ↓ brake/reverse &nbsp;&nbsp; ← → steer</div>
 
-<!-- Three.js canvas will be injected here -->
+<!-- TOUCH CONTROLS (hidden until race starts) -->
+<div id="touchControls" class="touch-controls hidden">
+  <div class="control-group">
+    <button class="ctrl-btn" id="touchLeft">◀ LEFT</button>
+    <button class="ctrl-btn" id="touchRight">RIGHT ▶</button>
+  </div>
+  <div class="control-group">
+    <button class="ctrl-btn" id="touchAccel">⚡ ACCEL</button>
+    <button class="ctrl-btn" id="touchBrake">🛑 BRAKE</button>
+  </div>
+</div>
+<div id="controlsHint" class="controls-hint hidden">🎮 Touch buttons or Keyboard: ↑/W accelerate &nbsp; ↓/S brake &nbsp; ←/A →/D steer</div>
+
 <script type="importmap">
   {
     "imports": {
@@ -218,105 +276,173 @@
 <script type="module">
   import * as THREE from 'three';
 
-  // --------------------------------------------------------------
-  // SETUP THREE.JS
-  // --------------------------------------------------------------
+  // --- SOUND SYSTEM (Web Audio) ---
+  let audioCtx = null;
+  let engineOsc = null;
+  let engineGain = null;
+  let skidGain = null;
+  let isAudioAllowed = false;
+  let engineBaseFreq = 80;
+  let engineRunning = false;
+
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Engine drone oscillator (sawtooth)
+    engineOsc = audioCtx.createOscillator();
+    engineGain = audioCtx.createGain();
+    engineOsc.type = 'sawtooth';
+    engineOsc.frequency.value = engineBaseFreq;
+    engineGain.gain.value = 0;
+    engineOsc.connect(engineGain);
+    engineGain.connect(audioCtx.destination);
+    engineOsc.start();
+    // Skid noise (white noise through filter)
+    const bufferSize = 4096;
+    const noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+    noiseNode.onaudioprocess = function(e) {
+      const output = e.outputBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+    };
+    const skidFilter = audioCtx.createBiquadFilter();
+    skidFilter.type = 'bandpass';
+    skidFilter.frequency.value = 1200;
+    skidFilter.Q.value = 1.5;
+    skidGain = audioCtx.createGain();
+    skidGain.gain.value = 0;
+    noiseNode.connect(skidFilter);
+    skidFilter.connect(skidGain);
+    skidGain.connect(audioCtx.destination);
+    engineRunning = true;
+  }
+
+  function updateEngineSound(speedRatio) {
+    if (!audioCtx || !engineOsc) return;
+    if (!isAudioAllowed) return;
+    const maxFreq = 280;
+    const freq = engineBaseFreq + (maxFreq - engineBaseFreq) * Math.min(1, Math.abs(speedRatio));
+    engineOsc.frequency.value = freq;
+    const volume = 0.15 + Math.abs(speedRatio) * 0.2;
+    engineGain.gain.value = volume;
+  }
+
+  function playSkid(intensity) {
+    if (!audioCtx || !skidGain || !isAudioAllowed) return;
+    skidGain.gain.value = intensity * 0.6;
+    setTimeout(() => {
+      if (skidGain) skidGain.gain.value = 0;
+    }, 150);
+  }
+
+  function playLapComplete() {
+    if (!audioCtx || !isAudioAllowed) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = 880;
+    gain.gain.value = 0.3;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
+    osc.stop(audioCtx.currentTime + 0.5);
+  }
+
+  // --- THREE.JS SETUP ---
   const canvas = document.createElement('canvas');
   document.body.appendChild(canvas);
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0a0a2a);
   scene.fog = new THREE.FogExp2(0x0a0a2a, 0.008);
 
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 3.5, 8);
-  camera.lookAt(0, 0, 0);
+  camera.position.set(0, 3.2, 8);
 
   // Lighting
-  const ambientLight = new THREE.AmbientLight(0x223344);
+  const ambientLight = new THREE.AmbientLight(0x334455);
   scene.add(ambientLight);
-  const mainLight = new THREE.DirectionalLight(0xffaa88, 1);
+  const mainLight = new THREE.DirectionalLight(0xffaa88, 1.2);
   mainLight.position.set(5, 12, 8);
   mainLight.castShadow = true;
-  mainLight.shadow.mapSize.width = 1024;
-  mainLight.shadow.mapSize.height = 1024;
   scene.add(mainLight);
-  const fillLight = new THREE.PointLight(0x44aaff, 0.5);
+  const fillLight = new THREE.PointLight(0x44aaff, 0.6);
   fillLight.position.set(0, 4, 2);
   scene.add(fillLight);
-  const backLight = new THREE.PointLight(0xffaa33, 0.4);
+  const backLight = new THREE.PointLight(0xffaa33, 0.5);
   backLight.position.set(0, 2, -5);
   scene.add(backLight);
 
-  // --------------------------------------------------------------
-  // IMPROVED CAR MODEL (sleek, not Lego)
-  // --------------------------------------------------------------
+  // --- IMPROVED CAR MODEL (sports car with curves) ---
   const carGroup = new THREE.Group();
-  // Body (low, wide, smooth)
-  const bodyGeo = new THREE.BoxGeometry(1.6, 0.35, 2.4);
+  // Main body (rounded using extrusion – simplified with beveled box)
+  const bodyGeo = new THREE.BoxGeometry(1.7, 0.4, 2.5);
   const bodyMat = new THREE.MeshStandardMaterial({ color: 0xff3366, metalness: 0.85, roughness: 0.25 });
   const body = new THREE.Mesh(bodyGeo, bodyMat);
-  body.position.y = 0.1;
+  body.position.y = 0.15;
   body.castShadow = true;
-  body.receiveShadow = true;
   carGroup.add(body);
-  // Roof / cockpit (rounded look using cylinder)
-  const roofGeo = new THREE.CylinderGeometry(0.7, 0.75, 1.1, 12);
-  const roofMat = new THREE.MeshStandardMaterial({ color: 0x44aaff, metalness: 0.3 });
-  const roof = new THREE.Mesh(roofGeo, roofMat);
-  roof.position.set(0, 0.45, -0.2);
-  roof.castShadow = true;
-  carGroup.add(roof);
-  // Front spoiler (small)
-  const spoilerGeo = new THREE.BoxGeometry(1.3, 0.15, 0.2);
-  const spoilerMat = new THREE.MeshStandardMaterial({ color: 0xccccdd });
-  const frontSpoiler = new THREE.Mesh(spoilerGeo, spoilerMat);
-  frontSpoiler.position.set(0, 0.1, 1.25);
-  frontSpoiler.castShadow = true;
-  carGroup.add(frontSpoiler);
-  // Rear wing
+  // Hood bulge
+  const bulgeGeo = new THREE.SphereGeometry(0.65, 16, 16);
+  const bulgeMat = new THREE.MeshStandardMaterial({ color: 0xff4444, metalness: 0.9 });
+  const bulge = new THREE.Mesh(bulgeGeo, bulgeMat);
+  bulge.scale.set(0.9, 0.25, 1.1);
+  bulge.position.set(0, 0.45, 0.7);
+  bulge.castShadow = true;
+  carGroup.add(bulge);
+  // Cockpit (transparent dome)
+  const cockpitGeo = new THREE.SphereGeometry(0.7, 24, 24);
+  const cockpitMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, metalness: 0.2, transparent: true, opacity: 0.6 });
+  const cockpit = new THREE.Mesh(cockpitGeo, cockpitMat);
+  cockpit.scale.set(0.9, 0.4, 1.2);
+  cockpit.position.set(0, 0.55, -0.2);
+  cockpit.castShadow = true;
+  carGroup.add(cockpit);
+  // Side skirts
+  const skirtMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+  const leftSkirt = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.15, 2.4), skirtMat);
+  leftSkirt.position.set(-0.95, 0.1, 0);
+  carGroup.add(leftSkirt);
+  const rightSkirt = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.15, 2.4), skirtMat);
+  rightSkirt.position.set(0.95, 0.1, 0);
+  carGroup.add(rightSkirt);
+  // Rear wing (sleek)
   const wingMat = new THREE.MeshStandardMaterial({ color: 0xccccdd });
-  const wingLeft = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.1, 0.6), wingMat);
-  wingLeft.position.set(-0.7, 0.55, -1.1);
+  const wingLeft = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 0.7), wingMat);
+  wingLeft.position.set(-0.75, 0.65, -1.15);
   carGroup.add(wingLeft);
-  const wingRight = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.1, 0.6), wingMat);
-  wingRight.position.set(0.7, 0.55, -1.1);
+  const wingRight = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 0.7), wingMat);
+  wingRight.position.set(0.75, 0.65, -1.15);
   carGroup.add(wingRight);
-  const wingCenter = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.1, 0.3), wingMat);
-  wingCenter.position.set(0, 0.6, -1.1);
+  const wingCenter = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 0.35), wingMat);
+  wingCenter.position.set(0, 0.7, -1.15);
   carGroup.add(wingCenter);
   // Wheels (with rims)
-  const wheelMatBlack = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.2 });
-  const rimMat = new THREE.MeshStandardMaterial({ color: 0xccccaa, metalness: 0.7 });
-  const wheelPositions = [[-0.9, 0.1, 0.85], [0.9, 0.1, 0.85], [-0.9, 0.1, -0.85], [0.9, 0.1, -0.85]];
-  wheelPositions.forEach(pos => {
-    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.5, 24), wheelMatBlack);
-    wheel.rotation.z = Math.PI / 2;
+  const wheelMatBlack = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.3 });
+  const rimMat = new THREE.MeshStandardMaterial({ color: 0xccccaa, metalness: 0.8 });
+  const wheelPos = [[-0.95, 0.12, 0.95], [0.95, 0.12, 0.95], [-0.95, 0.12, -0.9], [0.95, 0.12, -0.9]];
+  wheelPos.forEach(pos => {
+    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.55, 24), wheelMatBlack);
+    wheel.rotation.z = Math.PI/2;
     wheel.position.set(pos[0], pos[1], pos[2]);
     wheel.castShadow = true;
     carGroup.add(wheel);
-    // rim
-    const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.51, 8), rimMat);
-    rim.rotation.z = Math.PI / 2;
+    const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.56, 8), rimMat);
+    rim.rotation.z = Math.PI/2;
     rim.position.set(pos[0], pos[1], pos[2]);
     rim.castShadow = true;
     carGroup.add(rim);
   });
-  // windows (tinted)
-  const windowMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, emissive: 0x112233, transparent: true, opacity: 0.7 });
-  const frontWind = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.2, 0.6), windowMat);
-  frontWind.position.set(0, 0.55, 0.3);
-  carGroup.add(frontWind);
-  const sideWindL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.25, 0.9), windowMat);
-  sideWindL.position.set(-0.85, 0.5, -0.2);
-  carGroup.add(sideWindL);
-  const sideWindR = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.25, 0.9), windowMat);
-  sideWindR.position.set(0.85, 0.5, -0.2);
-  carGroup.add(sideWindR);
+  // Headlights
+  const lightMat = new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0xff4411 });
+  const leftLight = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), lightMat);
+  leftLight.position.set(-0.65, 0.25, 1.28);
+  carGroup.add(leftLight);
+  const rightLight = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), lightMat);
+  rightLight.position.set(0.65, 0.25, 1.28);
+  carGroup.add(rightLight);
   
   scene.add(carGroup);
   let carPosition = new THREE.Vector3(0, 0.15, -35);
@@ -325,47 +451,7 @@
   let steering = 0;
   carGroup.position.copy(carPosition);
 
-  // --------------------------------------------------------------
-  // TRACK BUILDING (same as before but with separate elements)
-  // --------------------------------------------------------------
-  let trackObjects = []; // not used for removal now, but we rebuild on stage change
-
-  function buildTrack(groundColor, trackColor) {
-    // Ground plane
-    const groundMat = new THREE.MeshStandardMaterial({ color: groundColor, roughness: 0.8, metalness: 0.1 });
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(45, 130), groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.2;
-    ground.receiveShadow = true;
-    scene.add(ground);
-    // Barriers
-    const barrierMat = new THREE.MeshStandardMaterial({ color: trackColor, metalness: 0.3 });
-    const leftBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 130), barrierMat);
-    leftBarrier.position.set(-7.2, 0.1, 0);
-    leftBarrier.castShadow = true;
-    scene.add(leftBarrier);
-    const rightBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 130), barrierMat);
-    rightBarrier.position.set(7.2, 0.1, 0);
-    rightBarrier.castShadow = true;
-    scene.add(rightBarrier);
-    // Lane markings
-    const lineMat = new THREE.MeshStandardMaterial({ color: 0xffcc33 });
-    for (let z = -55; z <= 55; z += 4.5) {
-      const line = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 1.8), lineMat);
-      line.position.set(0, 0.05, z);
-      scene.add(line);
-    }
-    // Finish line
-    const finishMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x442200 });
-    const finishLine = new THREE.Mesh(new THREE.BoxGeometry(14, 0.2, 0.6), finishMat);
-    finishLine.position.set(0, 0.05, 36);
-    scene.add(finishLine);
-    const startLine = new THREE.Mesh(new THREE.BoxGeometry(14, 0.2, 0.6), finishMat);
-    startLine.position.set(0, 0.05, -36);
-    scene.add(startLine);
-  }
-
-  // remove previous track (keep car and lights)
+  // --- TRACK (dynamic stage) ---
   function clearTrack() {
     const toRemove = [];
     scene.children.forEach(child => {
@@ -377,9 +463,38 @@
     toRemove.forEach(obj => scene.remove(obj));
   }
 
-  // --------------------------------------------------------------
-  // STAGES
-  // --------------------------------------------------------------
+  function buildTrack(groundColor, trackColor) {
+    const groundMat = new THREE.MeshStandardMaterial({ color: groundColor, roughness: 0.8 });
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(45, 130), groundMat);
+    ground.rotation.x = -Math.PI/2;
+    ground.position.y = -0.2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+    const barrierMat = new THREE.MeshStandardMaterial({ color: trackColor, metalness: 0.3 });
+    const leftBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 130), barrierMat);
+    leftBarrier.position.set(-7.2, 0.1, 0);
+    leftBarrier.castShadow = true;
+    scene.add(leftBarrier);
+    const rightBarrier = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 130), barrierMat);
+    rightBarrier.position.set(7.2, 0.1, 0);
+    rightBarrier.castShadow = true;
+    scene.add(rightBarrier);
+    const lineMat = new THREE.MeshStandardMaterial({ color: 0xffcc33 });
+    for (let z = -55; z <= 55; z += 4.5) {
+      const line = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 1.8), lineMat);
+      line.position.set(0, 0.05, z);
+      scene.add(line);
+    }
+    const finishMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x442200 });
+    const finishLine = new THREE.Mesh(new THREE.BoxGeometry(14, 0.2, 0.6), finishMat);
+    finishLine.position.set(0, 0.05, 36);
+    scene.add(finishLine);
+    const startLine = new THREE.Mesh(new THREE.BoxGeometry(14, 0.2, 0.6), finishMat);
+    startLine.position.set(0, 0.05, -36);
+    scene.add(startLine);
+  }
+
+  // stages
   const stages = [
     { name: "Tokyo Neon", groundColor: 0x111122, trackColor: 0xaa44ff, ambientColor: 0x223344, lightColor: 0xff66cc, bgColor: 0x0a0a2a },
     { name: "Sahara Desert", groundColor: 0xbb9955, trackColor: 0xccaa66, ambientColor: 0xccaa77, lightColor: 0xffaa66, bgColor: 0xddbb77 },
@@ -394,24 +509,21 @@
   let raceActive = true;
   let bestLapTime = Infinity;
   let lapStartTime = 0;
-  let raceSessionActive = false; // whether race is ongoing (UI visible)
+  let raceSessionActive = false;
 
-  function applyStage(stageIdx) {
+  function applyStage(idx) {
     clearTrack();
-    const st = stages[stageIdx];
+    const st = stages[idx];
     scene.background = new THREE.Color(st.bgColor);
     ambientLight.color.setHex(st.ambientColor);
     mainLight.color.setHex(st.lightColor);
     fillLight.color.setHex(st.lightColor);
     buildTrack(st.groundColor, st.trackColor);
     document.getElementById('stageName').innerText = st.name;
-    document.getElementById('stageNum').innerText = stageIdx+1;
+    document.getElementById('stageNum').innerText = idx+1;
   }
 
   function resetRace(keepStage = false) {
-    if (!keepStage) {
-      // use currentStage already selected
-    }
     carSpeed = 0;
     steering = 0;
     carAngle = 0;
@@ -423,12 +535,19 @@
     raceActive = true;
     document.getElementById('currentLap').innerText = "0";
     lapStartTime = performance.now() / 1000;
+    if (!keepStage) applyStage(currentStage);
   }
 
-  // --------------------------------------------------------------
-  // GAME LOOP & CONTROLS
-  // --------------------------------------------------------------
+  // --- INPUT HANDLING (keyboard + touch) ---
   const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, s: false, a: false, d: false };
+  // touch buttons
+  let touchAccel = false, touchBrake = false, touchLeft = false, touchRight = false;
+
+  function getAccel() { return keys.ArrowUp || keys.w || touchAccel; }
+  function getBrake() { return keys.ArrowDown || keys.s || touchBrake; }
+  function getLeft() { return keys.ArrowLeft || keys.a || touchLeft; }
+  function getRight() { return keys.ArrowRight || keys.d || touchRight; }
+
   window.addEventListener('keydown', (e) => {
     if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
     if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','s','a','d'].includes(e.key)) e.preventDefault();
@@ -437,19 +556,39 @@
     if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
   });
 
-  const maxSpeed = 34;
-  const acceleration = 1.7;
-  const brakeDecel = 2.2;
-  const turnSpeed = 2.0;
+  // Touch button event handlers (with preventDefault)
+  const touchMap = [
+    { id: 'touchAccel', set: v => touchAccel = v, active: false },
+    { id: 'touchBrake', set: v => touchBrake = v },
+    { id: 'touchLeft', set: v => touchLeft = v },
+    { id: 'touchRight', set: v => touchRight = v }
+  ];
+  touchMap.forEach(t => {
+    const btn = document.getElementById(t.id);
+    if (!btn) return;
+    btn.addEventListener('mousedown', (e) => { e.preventDefault(); t.set(true); });
+    btn.addEventListener('mouseup', () => t.set(false));
+    btn.addEventListener('mouseleave', () => t.set(false));
+    btn.addEventListener('touchstart', (e) => { e.preventDefault(); t.set(true); });
+    btn.addEventListener('touchend', (e) => { e.preventDefault(); t.set(false); });
+    btn.addEventListener('touchcancel', (e) => { e.preventDefault(); t.set(false); });
+  });
+
+  // --- GAME LOGIC ---
+  const maxSpeed = 36;
+  const acceleration = 1.8;
+  const brakeDecel = 2.5;
+  const turnSpeed = 2.2;
   const drag = 0.98;
+  let lastSkid = false;
 
   function updateGame(deltaTime) {
     if (!raceSessionActive || !raceActive) return;
 
-    let accelerate = keys.ArrowUp || keys.w;
-    let brake = keys.ArrowDown || keys.s;
-    let left = keys.ArrowLeft || keys.a;
-    let right = keys.ArrowRight || keys.d;
+    let accelerate = getAccel();
+    let brake = getBrake();
+    let left = getLeft();
+    let right = getRight();
 
     if (accelerate) carSpeed = Math.min(maxSpeed, carSpeed + acceleration * deltaTime);
     else if (brake) carSpeed = Math.max(-maxSpeed/2.5, carSpeed - brakeDecel * deltaTime);
@@ -466,14 +605,22 @@
     carPosition.z += Math.cos(carAngle) * carSpeed * deltaTime;
     carPosition.x += Math.sin(carAngle) * carSpeed * deltaTime;
 
-    // boundaries
     const trackMinX = -6.8, trackMaxX = 6.8;
     carPosition.x = Math.min(trackMaxX - 0.6, Math.max(trackMinX + 0.6, carPosition.x));
     if (carPosition.z > 38) carPosition.z = 38;
     if (carPosition.z < -38) carPosition.z = -38;
     carGroup.position.copy(carPosition);
 
-    // lap detection
+    // Skid sound when turning & speed > 8
+    const skidding = (Math.abs(steering) > 0.5 && Math.abs(carSpeed) > 8);
+    if (skidding && !lastSkid) playSkid(0.7);
+    lastSkid = skidding;
+
+    // Engine sound
+    const speedRatio = Math.abs(carSpeed) / maxSpeed;
+    updateEngineSound(speedRatio);
+
+    // Lap detection
     if (!lapStarted && carPosition.z > 35 && carPosition.z < 37 && carSpeed > 1.5) {
       lapStarted = true;
       if (currentLap === 0) lapStartTime = performance.now() / 1000;
@@ -483,17 +630,17 @@
       lapStarted = false;
       document.getElementById('currentLap').innerText = currentLap;
       const lapTimeSec = (performance.now() / 1000) - lapStartTime;
-      if (currentLap <= totalLaps && lapTimeSec < bestLapTime && currentLap > 0) {
+      if (lapTimeSec < bestLapTime && currentLap > 0) {
         bestLapTime = lapTimeSec;
         document.getElementById('bestLap').innerText = bestLapTime.toFixed(2) + 's';
       }
+      playLapComplete();
       if (currentLap >= totalLaps) {
         raceActive = false;
-        // advance to next stage
         currentStage++;
         if (currentStage >= stages.length) {
           currentStage = 0;
-          alert("🏆🏆🏆 GRAND CHAMPION! You completed all 5 stages! Starting over from stage 1. 🏆🏆🏆");
+          alert("🏆🏆🏆 GRAND CHAMPION! All 5 stages conquered! 🏆🏆🏆");
         } else {
           alert(`⭐ Stage complete! Advancing to ${stages[currentStage].name} ⭐`);
         }
@@ -504,36 +651,32 @@
       lapStartTime = performance.now() / 1000;
     }
 
-    // camera follow
-    const targetX = carPosition.x * 0.45;
-    const targetZ = carPosition.z - 5;
-    camera.position.x += (targetX - camera.position.x) * 0.08;
-    camera.position.z += (targetZ - camera.position.z) * 0.08;
-    camera.position.y = 2.8;
-    camera.lookAt(carPosition.x, 0.1, carPosition.z);
+    // Camera follow
+    camera.position.x += (carPosition.x * 0.4 - camera.position.x) * 0.1;
+    camera.position.z = carPosition.z - 5.2;
+    camera.position.y = 2.6 + Math.abs(carSpeed) * 0.02;
+    camera.lookAt(carPosition.x, 0.2, carPosition.z);
   }
 
   // Animation loop
-  let lastTime = performance.now();
+  let lastFrame = performance.now();
   function animate() {
     const now = performance.now();
-    let dt = Math.min(0.033, (now - lastTime) / 1000);
-    lastTime = now;
+    let dt = Math.min(0.033, (now - lastFrame) / 1000);
+    lastFrame = now;
     updateGame(dt);
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
   }
   animate();
 
-  // --------------------------------------------------------------
-  // UI CONTROLLER (Start Menu, Game UI)
-  // --------------------------------------------------------------
+  // --- UI & START / MENU LOGIC ---
   const startMenuDiv = document.getElementById('startMenu');
   const gameUIDiv = document.getElementById('gameUI');
-  const controlsHintDiv = document.getElementById('controlsHint');
+  const touchDiv = document.getElementById('touchControls');
+  const hintDiv = document.getElementById('controlsHint');
   let selectedStage = 0;
 
-  // Stage selector highlight
   document.querySelectorAll('.stage-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('selected'));
@@ -541,9 +684,14 @@
       selectedStage = parseInt(btn.dataset.stage);
     });
   });
-  document.querySelector('.stage-btn').classList.add('selected'); // default
+  document.querySelector('.stage-btn').classList.add('selected');
 
   function startRace() {
+    // Ensure audio is allowed on user interaction
+    if (!isAudioAllowed && audioCtx) {
+      audioCtx.resume();
+      isAudioAllowed = true;
+    }
     currentStage = selectedStage;
     applyStage(currentStage);
     resetRace(true);
@@ -554,8 +702,8 @@
     document.getElementById('currentLap').innerText = '0';
     startMenuDiv.classList.add('hidden');
     gameUIDiv.classList.remove('hidden');
-    controlsHintDiv.classList.remove('hidden');
-    // reset times
+    touchDiv.classList.remove('hidden');
+    hintDiv.classList.remove('hidden');
     lapStartTime = performance.now() / 1000;
   }
 
@@ -563,14 +711,14 @@
     raceSessionActive = false;
     startMenuDiv.classList.remove('hidden');
     gameUIDiv.classList.add('hidden');
-    controlsHintDiv.classList.add('hidden');
-    // reset car position visually
+    touchDiv.classList.add('hidden');
+    hintDiv.classList.add('hidden');
     carPosition.set(0, 0.15, -35);
     carGroup.position.copy(carPosition);
     carSpeed = 0;
     steering = 0;
-    // re-apply stage 0 background for menu
     applyStage(selectedStage);
+    if (engineGain) engineGain.gain.value = 0;
   }
 
   document.getElementById('startRaceBtn').addEventListener('click', startRace);
@@ -586,14 +734,24 @@
     }
   });
 
+  // Initial audio init on first touch anywhere
+  function enableAudioAndResume() {
+    if (!audioCtx) initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    isAudioAllowed = true;
+    document.body.removeEventListener('touchstart', enableAudioAndResume);
+    document.body.removeEventListener('click', enableAudioAndResume);
+  }
+  document.body.addEventListener('touchstart', enableAudioAndResume);
+  document.body.addEventListener('click', enableAudioAndResume);
+
+  // Build initial track for menu preview
+  buildTrack(stages[0].groundColor, stages[0].trackColor);
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
-
-  // initial build of track for stage 0 (will be overwritten on start)
-  buildTrack(stages[0].groundColor, stages[0].trackColor);
 </script>
 </body>
 </html>
