@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>REH DOGG GP: NEON RUN | Reh Dogg Games Plus Arcade</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="gameRoot">
+    <div id="canvasWrap">
+      <div id="loadingScreen">
+        <div class="brand">Reh Dogg Games Plus Arcade</div>
+        <h1>REH DOGG GP:<br>NEON RUN</h1>
+        <p>Starting clean lane-racer systems...</p>
+      </div>
+    </div>
+
+    <section id="menuScreen" class="overlay active">
+      <div class="menuPanel">
+        <div class="menuHeader">
+          <div class="brand">Reh Dogg Games Plus Arcade</div>
+          <div class="cabinetBadge">3 Lane Cockpit Racer</div>
+        </div>
+        <div class="titleBlock">
+          <span class="titleTop">REH DOGG GP</span>
+          <h1>NEON RUN</h1>
+          <span class="titleBottom">Switch lanes. Dodge hazards. Chase the glow.</span>
+        </div>
+        <div class="menuTrackPreview" aria-hidden="true">
+          <div class="previewRoad">
+            <span></span><span></span><span></span>
+            <b class="previewCar"></b>
+          </div>
+        </div>
+        <button id="startBtn" class="primaryBtn">Start Neon Run</button>
+        <button id="menuMusicBtn" class="musicBtn" type="button">Music On</button>
+        <div class="menuInfoGrid">
+          <div>
+            <strong>Keyboard</strong>
+            <span>A / Left Arrow</span>
+            <span>D / Right Arrow</span>
+          </div>
+          <div>
+            <strong>Mobile</strong>
+            <span>Tap LEFT</span>
+            <span>Tap RIGHT</span>
+          </div>
+          <div>
+            <strong>Goal</strong>
+            <span>Survive distance</span>
+            <span>Beat best score</span>
+          </div>
+        </div>
+        <div id="menuBest" class="bestScore">Best Score: 0</div>
+      </div>
+    </section>
+
+    <section id="gameOverScreen" class="overlay">
+      <div class="resultPanel">
+        <div class="brand">Run Over</div>
+        <h2>Game Over</h2>
+        <p id="finalStats">Score: 0</p>
+        <button id="restartBtn" class="primaryBtn">Restart Run</button>
+        <button id="mainMenuBtn">Main Menu</button>
+      </div>
+    </section>
+
+    <section id="hud">
+      <div class="hudItem"><span>Theme</span><strong id="hudTheme">Tokyo Neon</strong></div>
+      <div class="hudItem"><span>Speed</span><strong id="hudSpeed">0</strong></div>
+      <div class="hudItem"><span>Distance</span><strong id="hudDistance">0</strong></div>
+      <div class="hudItem"><span>Score</span><strong id="hudScore">0</strong></div>
+      <div class="hudItem"><span>Best</span><strong id="hudBest">0</strong></div>
+    </section>
+
+    <button id="pauseBtn">Pause</button>
+    <button id="pauseMusicBtn" class="musicBtn">Music On</button>
+    <div id="raceMessage" aria-live="polite"></div>
+
+    <section id="cockpitDash" aria-label="Cockpit dashboard">
+      <div class="windshieldFrame"></div>
+      <div class="dashGlow">
+        <div class="steeringWheel"><span></span></div>
+        <div class="dashReadout"><span>Speed</span><strong id="dashSpeed">0</strong></div>
+        <div class="dashReadout"><span>Distance</span><strong id="dashDistance">0</strong></div>
+        <div class="dashReadout"><span>Score</span><strong id="dashScore">0</strong></div>
+        <div class="dashReadout"><span>Best</span><strong id="dashBest">0</strong></div>
+      </div>
+    </section>
+
+    <div id="mobileControls" aria-label="Mobile lane controls">
+      <button data-control="left">LEFT</button>
+      <button data-control="right">RIGHT</button>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
