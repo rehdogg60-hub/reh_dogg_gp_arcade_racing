@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>REH DOGG GP | Reh Dogg Games Plus Arcade</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="gameRoot">
+    <div id="canvasWrap">
+      <div id="loadingScreen">
+        <div class="brand">Reh Dogg Games Plus Arcade</div>
+        <h1>REH DOGG GP</h1>
+        <p>Loading neon race systems...</p>
+      </div>
+    </div>
+
+    <section id="menuScreen" class="overlay active">
+      <div class="menuPanel">
+        <div class="brand">Reh Dogg Games Plus Arcade</div>
+        <h1>REH DOGG GP</h1>
+        <p class="tagline">Five-stage neon world tour. Three laps. No mercy. Pure arcade speed.</p>
+        <div id="stageButtons" class="stageGrid" aria-label="Stage select"></div>
+        <button id="startRaceBtn" class="primaryBtn">Start Race</button>
+        <div class="controlsCopy">
+          <strong>Controls</strong>
+          <span>Desktop: WASD or Arrow Keys to steer and accelerate. Space for brake.</span>
+          <span>Mobile: Hold touch buttons for gas, brake, and steering.</span>
+        </div>
+        <div id="bestLapText" class="bestLap">Best Lap: --</div>
+      </div>
+    </section>
+
+    <section id="stageOverlay" class="overlay">
+      <div class="resultPanel">
+        <div class="brand">Stage Complete</div>
+        <h2 id="stageTitle">Tokyo Neon Complete</h2>
+        <p id="stageStats">Lap time saved.</p>
+        <button id="nextStageBtn" class="primaryBtn">Next Stage</button>
+        <button id="restartStageBtn">Restart Race</button>
+        <button id="stageMenuBtn">Main Menu</button>
+      </div>
+    </section>
+
+    <section id="championOverlay" class="overlay">
+      <div class="resultPanel champion">
+        <div class="brand">Reh Dogg Games Plus Arcade</div>
+        <h2>Grand Champion</h2>
+        <p>You cleared all five REH DOGG GP stages.</p>
+        <button id="champRestartBtn" class="primaryBtn">Restart Race</button>
+        <button id="champMenuBtn">Main Menu</button>
+      </div>
+    </section>
+
+    <section id="hud">
+      <div class="hudItem"><span>Stage</span><strong id="hudStage">Tokyo Neon</strong></div>
+      <div class="hudItem"><span>Lap</span><strong id="hudLap">1 / 3</strong></div>
+      <div class="hudItem"><span>Speed</span><strong id="hudSpeed">0</strong></div>
+      <div class="hudItem"><span>Timer</span><strong id="hudTimer">00:00.00</strong></div>
+      <div class="hudItem"><span>Best</span><strong id="hudBest">--</strong></div>
+    </section>
+
+    <div id="mobileControls" aria-label="Mobile race controls">
+      <button data-control="left">◀</button>
+      <button data-control="gas" class="gas">GAS</button>
+      <button data-control="right">▶</button>
+      <button data-control="brake" class="brake">BRAKE</button>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
